@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
-from django.contrib import auth
+from django.contrib import auth, messages
 from receitas.models import Receita
 
 # Create your views here.
@@ -16,11 +16,13 @@ def cadastro(request):
         if not email.strip():
             return redirect('cadastro')
         if senha != senha2:
+            messages.error(request, "Senhas inválidas")
             return redirect('cadastro')
         if User.objects.filter(email=email).exists():
             print("Usuário existente")
             return redirect('cadastro')
         user = User.objects.create_user(username=nome, email=email, password=senha)
+        messages.success(request, "Cadastro realizado com sucesso")
         user.save()
         return redirect('login')
     else:
@@ -31,14 +33,14 @@ def login(request):
         email = request.POST['email']
         senha = request.POST['senha']
         if email == "" or senha == "":
-            print("Senha e email não podem ficar em branco")
+            messages.error(request, "Senhas e email não podem ficar em branco")
             return redirect('login')
         if User.objects.filter(email=email).exists():
             nome = User.objects.filter(email=email).values_list('username', flat=True).get()
             user = auth.authenticate(request, username=nome, password=senha)
             if user is not None:
                 auth.login(request, user)
-                print("Login realizado")
+                messages.success(request, "Login realizado com sucesso!")
                 return redirect('dashboard')
     return render(request, 'usuarios/login.html')
 
